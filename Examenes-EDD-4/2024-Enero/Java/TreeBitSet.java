@@ -1,12 +1,7 @@
-//Student's name: Paco Molina Cuenca
-//Student's group: 
-//Identity number (DNI if Spanish/passport if Erasmus):
-
-import dataStructures.list.List;
-
-import java.util.ArrayList;
 
 import dataStructures.list.LinkedList;
+import dataStructures.list.List;
+import dataStructures.set.LongBits;
 
 public class TreeBitSet {
   private static final int BITS_PER_LEAF = LongBits.BITS_PER_LONG;
@@ -60,7 +55,12 @@ public class TreeBitSet {
     }
 
     public List<Long> toList(long capacity) {
-      return LongBits.toList(bitset);
+      List<Long> res = new LinkedList<>();
+
+      for(Long num : LongBits.toList(bitset))
+        res.append(num);
+
+      return res;
     }
 
     public Tree cloneTree() {
@@ -77,36 +77,32 @@ public class TreeBitSet {
     }
 
     public long size() {
-        return left.size() + right.size();
+      return left.size() + right.size();
     }
 
     public boolean contains(long element, long capacity) {
-      long half = capacity / 2;
-      if (element < half)
-        return left.contains(element, half);
-      else
-        return right.contains(element - half, half);
+      return element < capacity/2 ? left.contains(element, capacity/2) : right.contains(element - capacity/2, capacity/2);
     }
 
     public void add(long element, long capacity) {
-      long half = capacity / 2;
-      if (element < half)
-        left.add(element, half);
-      else
-        right.add(element - half, half);
+      if(element < capacity/2)
+        left.add(element, capacity/2);
+      else 
+        right.add(element - capacity/2, capacity/2);
     }
 
     public List<Long> toList(long capacity) {
-      long half = capacity / 2;
-      List<Long> leftList = left.toList(half);
-      List<Long> rightList = right.toList(half);
-      List<Long> result = new ArrayList<>(leftList);
+      List<Long> res = new LinkedList<>();
+      List<Long> leftList = left.toList(capacity/2);
+      List<Long> rightList = right.toList(capacity/2);
 
-      for (Long x : rightList) {
-        result.add(x + half);  // Ajustamos el offset
-      }
+      for(Long num : leftList)
+        res.append(num);
 
-      return result;
+      for(Long num : rightList)
+        res.append(num + capacity/2);
+
+      return res;
     }
 
     public Tree cloneTree() {
@@ -117,25 +113,34 @@ public class TreeBitSet {
 
   // * Exercise 1 * -
   private static Tree makeTree(long capacity) {
+    return capacity <= BITS_PER_LEAF ? new Leaf(0) : new Node(makeTree(capacity/2), makeTree(capacity/2));
   }
 
   // * Exercise 2 * -
   public TreeBitSet(long capacity) {
+    if(capacity < 0)
+      throw new IllegalArgumentException("capacity must be positive");
+    
+    if(!isValidCapacity(capacity))
+      throw new IllegalArgumentException("capacity must be 64 multiplied by a power of 2");
+
+    root = makeTree(capacity);
+    this.capacity = capacity; 
   }
 
   // * Exercise 3 * -
   public long capacity() {
-
+    return capacity;
   }
 
   // * Exercise 4 * -
   private boolean outOfRange(long element) {
-
+    return element < 0 || element >= capacity;
   }
 
   // * Exercise 5 * -
   public long size() {
-
+    return root.size();
   }
   
   // El método size en la clase TreeBitSet devuelve el tamaño total del conjunto, que es el número de elementos distintos en el conjunto.
@@ -149,48 +154,51 @@ public class TreeBitSet {
 
   // * Exercise 6 * -
   public boolean isEmpty() {
-
+    return size() == 0;
   }
 
   // * Exercise 7 * -
   public boolean contains(long element) {
+    return root.contains(element, capacity);
   }
 
   // * Exercise 8 * -
   public void add(long element) {
-
+    root.add(element, capacity);
   }
 
   // * Exercise 9 * -
   public List<Long> toList() {
-
+    return root.toList(capacity);
   }
 
 
   //-------------------------------------------------------------------
   // Only for students without continuous assessment
   //-------------------------------------------------------------------
-  
+
+  /* 
   private TreeBitSet(long capacity, Tree root) {
 	    
   }
+  */
   
   // * Exercise 10 * -
   public static TreeBitSet union(TreeBitSet set1, TreeBitSet set2) {
-	   
+	   return null;
   }
   
   private static Tree unionTrees(Tree tree1, Tree tree2) {
-	    
+	   return null;
   }
   
   private static Tree unionTreesRecursive(Tree tree1, Tree tree2) {
-	   
+	   return null;
   }
 
   // * Exercise 11 * -
   public static TreeBitSet extendedUnion(TreeBitSet set1, TreeBitSet set2) {
-	    
+	   return null;
   }
 
 
