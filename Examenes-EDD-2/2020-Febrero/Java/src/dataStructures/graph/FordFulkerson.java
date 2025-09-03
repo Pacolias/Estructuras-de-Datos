@@ -1,0 +1,230 @@
+﻿/**
+ * Student's name: Paco Molina Cuenca
+ * Student's group: Doble Grado Matemáticas e Ingeniería Informática
+ */
+
+package dataStructures.graph;
+
+import dataStructures.list.LinkedList;
+import dataStructures.list.List;
+import dataStructures.set.HashSet;
+import dataStructures.set.Set;
+import dataStructures.tuple.Tuple2;
+
+public class FordFulkerson<V> {
+    private WeightedDiGraph<V,Integer> g; // Initial graph 
+    private List<WDiEdge<V,Integer>> sol; // List of edges representing maximal flow graph
+    private V src; 			  // Source
+    private V dst; 		  	  // Sink
+	
+    /**
+     * Constructors and methods
+     */
+
+    public static <V> int maxFlowPath(List<WDiEdge<V,Integer>> path) {
+        int maxFlow = path.get(0).getWeight();
+
+        for(WDiEdge<V,Integer> edge : path){
+            if(maxFlow > edge.getWeight())
+                maxFlow = edge.getWeight();
+        }
+
+        return maxFlow;
+    }
+
+    public static <V> List<WDiEdge<V,Integer>> updateEdge(V x, V y, Integer p, List<WDiEdge<V,Integer>> edges) {
+        List<WDiEdge<V,Integer>> res = new LinkedList<>();
+        boolean isEdge = false;
+
+        for(WDiEdge<V,Integer> edge : edges){
+            if(x.equals(edge.getSrc()) && y.equals(edge.getDst())){
+                isEdge = true;
+
+                if(p + edge.getWeight() != 0)
+                    res.append(new WDiEdge<>(x, p + edge.getWeight(), y));
+
+            } else{
+                res.append(edge);
+            }
+        }
+
+        if(!isEdge)
+            res.append(new WDiEdge<>(x, p, y));
+
+        return res;
+    }
+
+    public static <V> List<WDiEdge<V,Integer>> updateEdges(List<WDiEdge<V,Integer>> path, Integer p, List<WDiEdge<V,Integer>> edges) {
+        for(WDiEdge<V,Integer> edge : path)
+            edges = updateEdge(edge.getSrc(), edge.getDst(), p, edges);
+        return edges;
+    }
+
+    public static <V> List<WDiEdge<V,Integer>> addFlow(V x, V y, Integer p, List<WDiEdge<V,Integer>> sol) {
+        List<WDiEdge<V,Integer>> res = new LinkedList<>();
+        boolean isEdge = false;
+
+        for(WDiEdge<V,Integer> edge : sol){
+            if(x.equals(edge.getSrc()) && y.equals(edge.getDst())){
+                isEdge = true;
+                res.append(new WDiEdge<V,Integer>(x, p + edge.getWeight(), y));
+                
+            } else if(y.equals(edge.getSrc()) && x.equals(edge.getDst()) && p.equals(edge.getWeight())){
+                isEdge = true;
+                // No se añade a la lista
+            } else if(y.equals(edge.getSrc()) && x.equals(edge.getDst())){
+                isEdge = true;
+
+                if(edge.getWeight() < p)
+                    res.append(new WDiEdge<V,Integer>(x, p - edge.getWeight(), y));
+                else 
+                    res.append(new WDiEdge<V,Integer>(y, edge.getWeight() - p, x));
+
+            } else{
+                res.append(edge);
+            }
+        }
+
+        if(!isEdge)
+            res.append(new WDiEdge<>(x, p, y));
+
+        return res;
+    }
+
+    public static <V> List<WDiEdge<V,Integer>> addFlows(List<WDiEdge<V,Integer>> path, Integer p, List<WDiEdge<V,Integer>> sol) {
+        for(WDiEdge<V,Integer> edge : path)
+            sol = addFlow(edge.getSrc(), edge.getDst(), p, sol);
+        return sol;
+    }
+
+    public FordFulkerson(WeightedDiGraph<V,Integer> g, V src, V dst) {
+        this.g = g;
+        this.src = src;
+        this.dst = dst;
+        this.sol = new LinkedList();
+
+        WeightedDiGraph<V,Integer> wdg = g;
+        WeightedBreadthFirstTraversal<V,Integer> wbft = new WeightedBreadthFirstTraversal<>(wdg, src);
+        List<WDiEdge<V,Integer>> path = wbft.pathTo(dst);
+
+        while(path != null && !path.isEmpty()){
+            int mf = maxFlowPath(path);
+            List<WDiEdge<V,Integer>> edges = wdg.wDiEdges();
+            edges = updateEdges(path, -mf, edges);
+            edges = updateEdges(reversePath(path), mf, edges);
+            wdg = new WeightedDictionaryDiGraph<>(wdg.vertices(), edges);
+            this.sol = addFlows(path, mf, sol);
+            wbft = new WeightedBreadthFirstTraversal<>(wdg, src);
+            path = wbft.pathTo(dst);
+        }
+    }
+
+    private static <V> List<WDiEdge<V,Integer>> reversePath(List<WDiEdge<V,Integer>> path){
+        List<WDiEdge<V,Integer>> res = new LinkedList<>();
+        for(WDiEdge<V,Integer> edge : path)
+            res.append(new WDiEdge<V,Integer>(edge.getDst(), edge.getWeight(), edge.getSrc()));
+        return res;
+    }
+
+    public int maxFlow() {
+        int maxFlow = 0;
+        for(WDiEdge<V,Integer> edge : sol){
+            if(src.equals(edge.getSrc()))
+                maxFlow += edge.getWeight();
+        }
+        return maxFlow;
+    }
+
+    public int maxFlowMinCut(Set<V> set) {
+        int maxFlow = 0;
+        for(WDiEdge<V,Integer> edge : g.wDiEdges()){
+            if(set.isElem(edge.getSrc()) && !set.isElem(edge.getDst()))
+                maxFlow += edge.getWeight();
+            else if(!set.isElem(edge.getSrc()) && set.isElem(edge.getDst()))
+                maxFlow -= edge.getWeight();
+        }
+
+        return maxFlow;
+    }
+
+    /**
+     * Provided auxiliary methods
+     */
+    public List<WDiEdge<V, Integer>> getSolution() {
+        return sol;
+    }
+	
+    /**********************************************************************************
+     * A partir de aquí SOLO para estudiantes a tiempo parcial sin evaluación continua.
+     * ONLY for part time students.
+     * ********************************************************************************/
+
+    public static <V> boolean localEquilibrium(WeightedDiGraph<V,Integer> g, V src, V dst) {
+        boolean isLocalEquilibrium = true;
+
+        for(V v : g.vertices()){
+            if(g.inDegree(v) != g.outDegree(v))
+                isLocalEquilibrium = false;
+        }
+
+        return isLocalEquilibrium;
+    }
+    public static <V,W> Tuple2<List<V>,List<V>> sourcesAndSinks(WeightedDiGraph<V,W> g) {
+        Tuple2<List<V>,List<V>> res = new Tuple2<>(new LinkedList<>(), new LinkedList<>());
+
+        for(V v : g.vertices()){
+            if(g.inDegree(v) == 0)
+                res._1().append(v);
+            else if(g.outDegree(v) == 0)
+                res._2().append(v);
+        }
+
+        return res;
+    }
+
+    public static <V> void unifySourceAndSink(WeightedDiGraph<V,Integer> g, V newSrc, V newDst) {
+        Tuple2<List<V>,List<V>> sourcesAndSinks = sourcesAndSinks(g);
+        List<V> vertices = new LinkedList<>();
+        List<WDiEdge<V,Integer>> edges = new LinkedList<>();
+
+        for(V v : g.vertices())
+            vertices.append(v);
+
+        for(WDiEdge<V,Integer> edge : g.wDiEdges())
+            edges.append(edge);
+
+        if(sourcesAndSinks._1().size() > 1){
+            vertices.append(newSrc);
+            for(V src : sourcesAndSinks._1())
+                edges.append(new WDiEdge<V,Integer>(newSrc, sumaPesosSrc(src, g.wDiEdges()), src));
+        }
+
+        if(sourcesAndSinks._2().size() > 1){
+            vertices.append(newDst);
+            for(V dst : sourcesAndSinks._2())
+                edges.append(new WDiEdge<V,Integer>(dst, sumaPesosDst(dst, g.wDiEdges()), newDst));
+        }
+
+        g = new WeightedDictionaryDiGraph<>(vertices, edges);
+    }
+
+    private static <V> int sumaPesosSrc(V src, List<WDiEdge<V,Integer>> edges){
+        int sumaPesos = 0;
+        for(WDiEdge<V,Integer> edge : edges){
+            if(src.equals(edge.getSrc()))
+                sumaPesos += edge.getWeight();
+        }
+
+        return sumaPesos;
+    }
+
+    private static <V> int sumaPesosDst(V dst, List<WDiEdge<V,Integer>> edges){
+        int sumaPesos = 0;
+        for(WDiEdge<V,Integer> edge : edges){
+            if(dst.equals(edge.getDst()))
+                sumaPesos += edge.getWeight();
+        }
+
+        return sumaPesos;
+    }
+}
