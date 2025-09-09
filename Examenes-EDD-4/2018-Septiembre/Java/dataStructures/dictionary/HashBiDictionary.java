@@ -2,6 +2,7 @@ package dataStructures.dictionary;
 import dataStructures.list.List;
 
 import dataStructures.list.ArrayList;
+import dataStructures.list.LinkedList;
 import dataStructures.set.AVLSet;
 import dataStructures.set.HashSet;
 import dataStructures.set.Set;
@@ -35,7 +36,7 @@ public class HashBiDictionary<K,V> implements BiDictionary<K,V>{
 	}
 	
 	public void insert(K k, V v) {
-		if(bKeys.isDefinedAt(k)){
+		if(bKeys.isDefinedAt(k))
 			bValues.delete(bKeys.valueOf(k));
 
 		bKeys.insert(k, v);
@@ -126,20 +127,64 @@ public class HashBiDictionary<K,V> implements BiDictionary<K,V>{
 	}
 		
 	public static <K extends Comparable<? super K>> boolean isPermutation(BiDictionary<K,K> bd) {
+		Set<K> keys = new HashSet<>();
+		Set<K> values = new HashSet<>();
 
+		for(K k : bd.keys())
+			keys.insert(k);
+
+		for(K k : bd.values())
+			values.insert(k);
+
+		boolean sonIguales = true;
+
+		for(K k : keys){
+			if(!values.isElem(k))
+				sonIguales = false;
+		}
+
+		for(K k : values){
+			if(!keys.isElem(k))
+				sonIguales = false;
+		}
+
+		return sonIguales;
 	}
 	
 	// Solo alumnos con evaluación por examen final.
     // =====================================
 	
 	public static <K extends Comparable<? super K>> List<K> orbitOf(K k, BiDictionary<K,K> bd) {
-		// TODO
-		return null;
+		List<K> res = new LinkedList<>();
+		res.append(k);
+
+		K current = bd.valueOf(k);
+
+		while(!current.equals(k)){
+			res.append(current);
+			current = bd.valueOf(current);
+		}
+
+		return res;
 	}
 	
 	public static <K extends Comparable<? super K>> List<List<K>> cyclesOf(BiDictionary<K,K> bd) {
-		// TODO
-		return null;
+		List<List<K>> res = new LinkedList<>();
+		Set<K> keys = new HashSet<>();
+		List<K> orbit;
+
+		for(K k : bd.keys()){
+			if(!keys.isElem(k)){
+				orbit = orbitOf(k, bd);
+
+				for(K x : orbit)
+					keys.insert(x);
+
+				res.append(orbit);
+			}
+		}
+
+		return res;
 	}
 
     // =====================================
