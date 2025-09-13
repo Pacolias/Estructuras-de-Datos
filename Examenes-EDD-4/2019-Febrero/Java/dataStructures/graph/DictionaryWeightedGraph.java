@@ -31,19 +31,21 @@ public class DictionaryWeightedGraph<V, W extends Comparable<? super W>> impleme
         W1 wght;
 
         WE(V1 s, V1 d, W1 w) {
-
+            src = s;
+            dst = d;
+            wght = w;
         }
 
         public V1 source() {
-
+            return src;
         }
 
         public V1 destination() {
-
+            return dst;
         }
 
         public W1 weight() {
-
+            return wght;
         }
 
         public String toString() {
@@ -80,20 +82,33 @@ public class DictionaryWeightedGraph<V, W extends Comparable<? super W>> impleme
 
 
     public void addVertex(V v) {
-
+        graph.insert(v, new HashDictionary<>());
     }
 
     public void addEdge(V src, V dst, W w) {
-
+        if(!(graph.isDefinedAt(src) && graph.isDefinedAt(dst)))
+            throw new IllegalArgumentException("At least one of the given vertices is not part of the graph");
+        
+        graph.valueOf(src).insert(dst, w);
     }
 
     public Set<Tuple2<V, W>> successors(V v) {
+        if(!graph.isDefinedAt(v))
+            throw new IllegalArgumentException("the graph is not defined on the given vertex");
 
+        return graph.valueOf(v).keysValues();
     }
 
 
     public Set<WeightedEdge<V, W>> edges() {
+        Set<WeightedEdge<V, W>> res = new HashSet<>();
 
+        for(Tuple2<V, Dictionary<V,W>> par : graph.keysValues()){
+            for(Tuple2<V,W> verticePeso : par._2().keysValues())
+                res.insert(new WE<>(par._1(), verticePeso._1(), verticePeso._2()));
+        }
+
+        return res;
     }
 
     /** DON'T EDIT ANYTHING BELOW THIS COMMENT **/
@@ -120,7 +135,7 @@ public class DictionaryWeightedGraph<V, W extends Comparable<? super W>> impleme
         int num = 0;
         for (Dictionary<V, W> d : graph.values())
             num += d.size();
-        return num / 2;
+        return num;
     }
 
 
