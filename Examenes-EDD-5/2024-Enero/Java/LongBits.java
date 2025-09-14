@@ -3,7 +3,7 @@ import java.util.List;
 
 public class LongBits {
 
-    public static final int bitsPerLong = 64;
+    public static final int BITS_PER_LONG = 64;
 
     // Devuelve true si el bit en la posición 'pos' está activado (1)
     public static boolean getBit(long bits, int pos) {
@@ -23,7 +23,7 @@ public class LongBits {
     // Devuelve una lista con los índices de bits activados
     public static List<Long> toList(long bits) {
         List<Long> result = new ArrayList<>();
-        for (int i = 0; i < bitsPerLong; i++) {
+        for (int i = 0; i < BITS_PER_LONG; i++) {
             if (getBit(bits, i)) {
                 result.add((long) i);
             }
