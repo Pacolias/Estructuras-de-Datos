@@ -13,8 +13,6 @@ import dataStructures.dictionary.Dictionary;
 import dataStructures.list.LinkedList;
 import dataStructures.list.List;
 import dataStructures.tuple.Tuple2;
-
-import java.util.Iterator;
 import java.util.Objects;
 
 public class DictionaryStringTrie<V> {
@@ -36,49 +34,80 @@ public class DictionaryStringTrie<V> {
 
   // | = Exercise a - constructor
   public DictionaryStringTrie() {
-	  
+	  root = null;
   }
 
   // | = Exercise b - isEmpty
   public boolean isEmpty() {
+    return root == null;
   }
   
 
   // | = Exercise c - sizeValue
   protected static <V> int sizeValue(V value) {
-	  
+	  return value == null ? 0 : 1;
   }
 
   // | = Exercise d - size
   public int size() {
-	  
+	  return size(root);
   }
 
   protected static <V> int size(Node<V> n) {
+    if(n == null)
+      return 0;
     
+    int size = sizeValue(n.value);
+
+    for(Node<V> child : n.children.values())
+      size += size(child);
+
+    return size;
   }
 
   // | = Exercise e - childOf
   protected static <V> Node<V> childOf(char c, Node<V> node) {
-   
+    return node == null || !node.children.isDefinedAt(c) ? null : node.children.valueOf(c);
   }
 
   // | = Exercise f - search
   public V search(String str) {
-
+    return search(str, root);
   }
 
   protected static <V> V search(String str, Node<V> node) {
-    
+    if(node == null)
+      return null;
+    else if(str.isEmpty())
+      return node.value;
+    else 
+      return search(str.substring(1), childOf(str.charAt(0), node));
   }
 
   // | = Exercise g - insert
   public void insert(String str, V value) {
-    
+    root = insert(str, value, root);
   }
 
   protected static <V> Node<V> insert(String str, V value, Node<V> node) {
-    
+    if(str.isEmpty() && node == null){
+      Node<V> newNode = new Node<>();
+      newNode.value = value;
+      return newNode;
+
+    } else if(str.isEmpty()){
+      Node<V> newNode = new Node<>();
+      newNode.value = value;
+      newNode.children = node.children;
+      return newNode;
+
+    } else{
+      if(node == null)
+        node = new Node<>();
+        
+      node.children.insert(str.charAt(0), insert(str.substring(1), value, childOf(str.charAt(0), node)));
+      return node;
+    }
   }
 
   /*****************************************************************************
@@ -87,19 +116,26 @@ public class DictionaryStringTrie<V> {
 
   // | = Exercise e1 - strings
   public List<String> strings() {
-    // TODO
-    return null;
+    return strings(root);
   }
 
   protected static <V> List<String> strings(Node<V> node) {
-    // TODO
+    List<String> res = new LinkedList<>();
     return null;
   }
 
   // | = Exercise e2 - fromList
   public static DictionaryStringTrie<Integer> fromList(List<String> list) {
-    // TODO
-    return null;
+    DictionaryStringTrie<Integer> res = new DictionaryStringTrie();
+
+    int i = 0;
+
+    for(String str : list){
+      res.insert(str, i);
+      i++;
+    }
+
+    return res;
   }
 
   /*****************************************************************************
