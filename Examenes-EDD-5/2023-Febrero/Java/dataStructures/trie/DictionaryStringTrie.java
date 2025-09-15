@@ -121,7 +121,19 @@ public class DictionaryStringTrie<V> {
 
   protected static <V> List<String> strings(Node<V> node) {
     List<String> res = new LinkedList<>();
-    return null;
+
+    if(node.children.isEmpty()){
+      res.append("");
+
+    } else{
+
+      for(Tuple2<Character, Node<V>> par : node.children.keysValues()){
+        for(String str : strings(par._2()))
+          res.append(par._1() + str);
+      }
+    }
+
+    return res;
   }
 
   // | = Exercise e2 - fromList
