@@ -67,7 +67,12 @@ public class SparseVector<T> implements Iterable<T> {
 
         @Override
         public Tree<T> set(int sz, int i, T x) {
-            return i < sz/2 ? new Node<>(left.set(sz/2, i, x), right).simplify() : new Node<>(left, right.set(sz/2, i - sz/2, x));
+            if(i < sz/2)
+                left = left.set(sz/2, i, x);
+            else 
+                right = right.set(sz/2, i - sz/2, x);
+
+            return this;
         }
 
         protected Tree<T> simplify() {
@@ -125,5 +130,25 @@ public class SparseVector<T> implements Iterable<T> {
     @Override
     public String toString() {
         return "SparseVector(" + size + "," + root + ")";
+    }
+
+    public SparseVector(SparseVector<T> sp){
+        size = sp.size();
+        root = new Unif<>(sp.get(0));
+
+        for(int i = 0; i < size; i++){
+            this.set(i, sp.get(i));
+        }
+    }
+
+    public int depthOf(int i){
+        return depthOfRec(i, 0, size, root);
+    }
+
+    private int depthOfRec(int i, int depth, int size, Tree<T> root){
+        if(root instanceof Unif<?>)
+            return depth;
+
+        return i < size/2 ? depthOfRec(i, depth + 1, size/2, root.left) : depthOfRec(i - size/2, depth + 1, size/2, root.right);
     }
 }
