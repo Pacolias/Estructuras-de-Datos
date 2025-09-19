@@ -196,7 +196,7 @@ Just 2
 >>> root 3 (union 1 3 (add 3 (add 2 (add 1 empty))))
 Just 1
 
->>> root 4 (union 1 3 (add 3 (add 2 (add 1 DisjointSet.empty))))
+>>> root 4 (union 1 3 (add 3 (add 2 (add 1 empty))))
 Nothing
 
 -- | Exercise 6. isRoot

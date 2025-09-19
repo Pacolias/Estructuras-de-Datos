@@ -9,7 +9,6 @@ package dataStructures.set;
 
 import dataStructures.dictionary.AVLDictionary;
 import dataStructures.dictionary.Dictionary;
-import dataStructures.list.ArrayList;
 import dataStructures.list.LinkedList;
 import dataStructures.list.List;
 
@@ -21,6 +20,7 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      * Inicializa las estructuras necesarias.
      */
     public DisjointSetDictionary() {
+        dic = new AVLDictionary<>();
     }
 
     /**
@@ -28,6 +28,7 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      */
     @Override
     public boolean isEmpty() {
+        return dic.isEmpty();
     }
 
     /**
@@ -35,6 +36,7 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      */
     @Override
     public boolean isElem(T elem) {
+        return dic.isDefinedAt(elem);
     }
 
     /**
@@ -43,6 +45,7 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
 
     @Override
     public int numElements() {
+        return dic.size();
     }
 
     /**
@@ -52,6 +55,8 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      */
     @Override
     public void add(T elem) {
+        if(!dic.isDefinedAt(elem))
+            dic.insert(elem, elem);
     }
 
     /**
@@ -60,6 +65,10 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      * devuelve {@code null}.
      */
     private T root(T elem) {
+        if(!isElem(elem))
+            return null;
+
+        return elem.equals(dic.valueOf(elem)) ? elem : root(dic.valueOf(elem)); 
     }
 
     /**
@@ -67,6 +76,7 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      * de la clase de equivalencia a la que pertenece.
      */
     private boolean isRoot(T elem) {
+        return elem.equals(root(elem));
     }
 
     /**
@@ -75,6 +85,7 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      */
     @Override
     public boolean areConnected(T elem1, T elem2) {
+        return root(elem1).equals(root(elem2));
     }
 
     /**
@@ -84,6 +95,16 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      */
     @Override
     public List<T> kind(T elem) {
+        List<T> res = new LinkedList<>();
+
+        if(isElem(elem)){
+            for(T e : dic.keys()){
+                if(areConnected(elem, e))
+                    res.append(e);
+            }
+        }
+
+        return res;
     }
 
     /**
@@ -93,6 +114,16 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      */
     @Override
     public void union(T elem1, T elem2) {
+        if(!isElem(elem1) || !isElem(elem2))
+            throw new IllegalArgumentException();
+
+        T rootX = root(elem1);
+        T rootY = root(elem2);
+
+        if(rootX.compareTo(rootY) < 0)
+            dic.insert(rootY, rootX);
+        else if(rootX.compareTo(rootY) > 0)
+            dic.insert(rootX, rootY);
     }
 
     // ====================================================
@@ -106,6 +137,15 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      */
     @Override
     public void flatten() {
+        Set<T> keys = new HashSet<>();
+
+        for(T elem : dic.keys())
+            keys.insert(elem);
+
+        for(T elem : keys){
+            dic.delete(elem);
+            dic.insert(elem, root(elem));
+        }
     }
 
     /**
@@ -114,6 +154,22 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      */
     @Override
     public List<List<T>> kinds() {
+        List<List<T>> res = new LinkedList<>();
+        List<T> clase;
+        
+        Set<T> keys = new HashSet<>();
+
+        for(T elem : dic.keys()){
+            if(!keys.isElem(elem)){
+                clase = kind(elem);
+                res.append(clase);
+
+                for(T e : clase)
+                    keys.insert(e);
+            }
+        }
+
+        return res;
     }
 
     /**
