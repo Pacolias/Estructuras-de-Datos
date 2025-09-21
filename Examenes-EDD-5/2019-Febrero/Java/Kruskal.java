@@ -12,18 +12,46 @@
  * ----------------------------------------------
  */
 
-import dataStructures.graph.WeightedGraph;
-import dataStructures.graph.WeightedGraph.WeightedEdge;
-
 import dataStructures.dictionary.Dictionary;
 import dataStructures.dictionary.HashDictionary;
-import dataStructures.priorityQueue.PriorityQueue;
+import dataStructures.graph.WeightedGraph;
+import dataStructures.graph.WeightedGraph.WeightedEdge;
 import dataStructures.priorityQueue.LinkedPriorityQueue;
-import dataStructures.set.Set;
+import dataStructures.priorityQueue.PriorityQueue;
 import dataStructures.set.HashSet;
+import dataStructures.set.Set;
 
 public class Kruskal {
 	public static <V,W> Set<WeightedEdge<V,W>> kruskal(WeightedGraph<V,W> g) {
+		Dictionary<V,V> dict = new HashDictionary<>();
+
+		for(V v : g.vertices())
+			dict.insert(v,v);
+
+		PriorityQueue<WeightedEdge<V,W>> pq = new LinkedPriorityQueue<>();
+		
+		for(WeightedEdge<V,W> edge : g.edges())
+			pq.enqueue(edge);
+
+		Set<WeightedEdge<V,W>> t = new HashSet<>();
+
+		WeightedEdge<V,W> primera;
+
+		while(!pq.isEmpty()){
+			primera = pq.first();
+			pq.dequeue();
+
+			if(!representante(primera.source(), dict).equals(representante(primera.destination(), dict))){
+				dict.insert(primera.destination(), primera.source());
+				t.insert(primera);
+			}
+		}
+
+		return t;
+	}
+
+	private static <V> V representante(V v, Dictionary<V,V> dict){
+		return v.equals(dict.valueOf(v)) ? v : representante(dict.valueOf(v), dict);
 	}
 
 	// Sólo para evaluación continua / only for part time students

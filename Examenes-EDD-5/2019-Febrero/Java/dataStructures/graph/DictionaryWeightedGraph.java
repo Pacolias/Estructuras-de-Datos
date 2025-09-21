@@ -14,14 +14,12 @@
 
 package dataStructures.graph;
 
-import java.util.Iterator;
-
 import dataStructures.dictionary.Dictionary;
 import dataStructures.dictionary.HashDictionary;
-
-import dataStructures.set.Set;
 import dataStructures.set.HashSet;
+import dataStructures.set.Set;
 import dataStructures.tuple.Tuple2;
+import java.util.Iterator;
 
 public class DictionaryWeightedGraph<V, W extends Comparable<? super W>> implements WeightedGraph<V, W> {
 
@@ -31,40 +29,41 @@ public class DictionaryWeightedGraph<V, W extends Comparable<? super W>> impleme
         W1 wght;
 
         WE(V1 s, V1 d, W1 w) {
-
+            src = s;
+            dst = d;
+            wght = w;
         }
 
         public V1 source() {
-
+            return src;
         }
 
         public V1 destination() {
-
+            return dst;
         }
 
         public W1 weight() {
-
+            return wght;
         }
 
         public String toString() {
-            return "WE(" + src + "," + dst + "," + wght + ")";
+            return "WE(" + src.toString() + "," + dst.toString() + "," + wght.toString() + ")";
         }
 
-		  public int hashCode() {
-			  return this.src.hashCode()+this.dst.hashCode()+this.wght.hashCode();
-		  }
+		public int hashCode() {
+            return src.hashCode() + wght.hashCode() + dst.hashCode();
+		}
 
-		  public boolean equals(Object obj) {
-              Boolean itsWeightedEdge = obj instanceof DictionaryWeightedGraph.WE<?,?>;
-              WE<V1, W1> object = itsWeightedEdge ? (WE<V1, W1>) obj : null;
-              Boolean res = object.destination().equals(this.destination())
-                      && object.source().equals(this.source())
-                      && object.weight().equals(this.weight());
-              return res;
-		  }
+		public boolean equals(Object obj) {
+            if(obj instanceof WE<?,?>){
+                WE<V1,W1> objeto = (WE<V1,W1>) obj;
+                return src.equals(objeto.source()) && dst.equals(objeto.destination()) && wght.equals(objeto.weight());
+            }
+            return false;
+		}
 
 		  public int compareTo(WeightedEdge<V1, W1> o) {
-			  return weight().compareTo(o.weight());
+            return wght.compareTo(o.weight());
 		  }
     }
 
@@ -80,20 +79,38 @@ public class DictionaryWeightedGraph<V, W extends Comparable<? super W>> impleme
 
 
     public void addVertex(V v) {
-
+        graph.insert(v, new HashDictionary<>());
     }
 
     public void addEdge(V src, V dst, W w) {
+        if(!graph.isDefinedAt(src) || !graph.isDefinedAt(dst))
+            throw new GraphException("graph not defined on at least one of the given vertices");
 
+        graph.valueOf(src).insert(dst, w);
     }
 
     public Set<Tuple2<V, W>> successors(V v) {
+        if(!graph.isDefinedAt(v))
+            throw new GraphException("graph not defined on the given vertex");
 
+        Set<Tuple2<V, W>> res = new HashSet<>();
+
+        for(Tuple2<V, W> par : graph.valueOf(v).keysValues())
+            res.insert(par);
+
+        return res;
     }
 
 
     public Set<WeightedEdge<V, W>> edges() {
+        Set<WeightedEdge<V, W>> res = new HashSet<>();
 
+        for(Tuple2<V, Dictionary<V,W>> par : graph.keysValues()){
+            for(Tuple2<V,W> pesoVertice : par._2().keysValues())
+                res.insert(new WE<>(par._1(), pesoVertice._1(), pesoVertice._2()));
+        }
+
+        return res;
     }
 
     /** DON'T EDIT ANYTHING BELOW THIS COMMENT **/
@@ -120,7 +137,7 @@ public class DictionaryWeightedGraph<V, W extends Comparable<? super W>> impleme
         int num = 0;
         for (Dictionary<V, W> d : graph.values())
             num += d.size();
-        return num / 2;
+        return num;
     }
 
 
