@@ -42,15 +42,17 @@ public class LinkedDoubleEndedQueue<T> implements DoubleEndedQueue<T> {
     /**
      * Complexity: O(1)
      */
-    public LinkedDoubleEndedQueue() {
+    public LinkedDoubleEndedQueue(){
+        first = null;
+        last = null;
     }
 
     /**
      * Complexity: O(1)
      */
     @Override
-    public boolean isEmpty() {
-
+    public boolean isEmpty(){
+        return first == null;
     }
 
     /**
@@ -58,7 +60,16 @@ public class LinkedDoubleEndedQueue<T> implements DoubleEndedQueue<T> {
      */
     @Override
     public void addFirst(T x) {
+        if(isEmpty()){
+            Node<T> node = new Node<>(x, null, null);
+            first = node;
+            last = node;
 
+        } else{
+            Node<T> node = new Node<>(x, first, null);
+            first.prev = node;
+            first = node;
+        }
     }
 
     /**
@@ -66,7 +77,16 @@ public class LinkedDoubleEndedQueue<T> implements DoubleEndedQueue<T> {
      */
     @Override
     public void addLast(T x) {
+        if(isEmpty()){
+            Node<T> node = new Node<>(x, null, null);
+            first = node;
+            last = node;
 
+        } else{
+            Node<T> node = new Node<>(x, null, last);
+            last.next = node;
+            last = node;
+        }
     }
 
     /**
@@ -74,7 +94,10 @@ public class LinkedDoubleEndedQueue<T> implements DoubleEndedQueue<T> {
      */
     @Override
     public T first() {
+        if(isEmpty())
+            throw new EmptyDoubleEndedQueueException("first on empty DEQ");
 
+        return first.elem;
     }
 
     /**
@@ -82,7 +105,10 @@ public class LinkedDoubleEndedQueue<T> implements DoubleEndedQueue<T> {
      */
     @Override
     public T last() {
+        if(isEmpty())
+            throw new EmptyDoubleEndedQueueException("last on empty DEQ");
 
+        return last.elem;
     }
 
     /**
@@ -90,7 +116,17 @@ public class LinkedDoubleEndedQueue<T> implements DoubleEndedQueue<T> {
      */
     @Override
     public void deleteFirst() {
+        if(isEmpty())
+            throw new EmptyDoubleEndedQueueException("deleteFirst on empty DEQ");
 
+        if(first == last){
+            first = null;
+            last = null;
+        
+        } else{
+            first.next.prev = null;
+            first = first.next;
+        }
     }
 
     /**
@@ -98,7 +134,17 @@ public class LinkedDoubleEndedQueue<T> implements DoubleEndedQueue<T> {
      */
     @Override
     public void deleteLast() {
+        if(isEmpty())
+            throw new EmptyDoubleEndedQueueException("deleteFirst on empty DEQ");
 
+        if(first == last){
+            first = null;
+            last = null;
+        
+        } else{
+            last.prev.next = null;
+            last = last.prev;
+        }
     }
 
     /**
