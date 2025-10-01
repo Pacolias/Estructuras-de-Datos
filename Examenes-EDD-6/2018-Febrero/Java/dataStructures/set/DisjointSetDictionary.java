@@ -9,7 +9,6 @@ package dataStructures.set;
 
 import dataStructures.dictionary.AVLDictionary;
 import dataStructures.dictionary.Dictionary;
-import dataStructures.list.ArrayList;
 import dataStructures.list.LinkedList;
 import dataStructures.list.List;
 
@@ -20,21 +19,24 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
     /**
      * Inicializa las estructuras necesarias.
      */
-    public DisjointSetDictionary() {
+    public DisjointSetDictionary(){
+        dic = new AVLDictionary<>();
     }
 
     /**
      * Devuelve {@code true} si el conjunto no contiene elementos.
      */
     @Override
-    public boolean isEmpty() {
+    public boolean isEmpty(){
+        return dic.isEmpty();
     }
 
     /**
      * Devuelve {@code true} si {@code elem} es un elemento del conjunto.
      */
     @Override
-    public boolean isElem(T elem) {
+    public boolean isElem(T elem){
+        return dic.isDefinedAt(elem);
     }
 
     /**
@@ -42,7 +44,8 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      */
 
     @Override
-    public int numElements() {
+    public int numElements(){
+        return dic.size();
     }
 
     /**
@@ -51,7 +54,9 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      * {@code elem} pertencece al conjunto no hace nada.
      */
     @Override
-    public void add(T elem) {
+    public void add(T elem){
+        if(!dic.isDefinedAt(elem))
+            dic.insert(elem, elem);
     }
 
     /**
@@ -59,14 +64,19 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      * que pertenece {@code elem}. Si {@code elem} no pertenece al conjunto
      * devuelve {@code null}.
      */
-    private T root(T elem) {
+    private T root(T elem){
+        if(!isElem(elem))
+            return null;
+
+        return elem.equals(dic.valueOf(elem)) ? elem : root(dic.valueOf(elem));
     }
 
     /**
      * Devuelve {@code true} si {@code elem} es el elemento canonico (la raiz)
      * de la clase de equivalencia a la que pertenece.
      */
-    private boolean isRoot(T elem) {
+    private boolean isRoot(T elem){
+        return elem.equals(root(elem));
     }
 
     /**
@@ -74,7 +84,8 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      * clase de equivalencia.
      */
     @Override
-    public boolean areConnected(T elem1, T elem2) {
+    public boolean areConnected(T elem1, T elem2){
+        return root(elem1).equals(root(elem2));
     }
 
     /**
@@ -83,7 +94,17 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      * conjunto devuelve la lista vacia.
      */
     @Override
-    public List<T> kind(T elem) {
+    public List<T> kind(T elem){
+        List<T> res = new LinkedList<>();
+
+        if(isElem(elem)){
+            for(T x : dic.keys()){
+                if(areConnected(elem, x))
+                    res.append(x);
+            }
+        }
+
+        return res;
     }
 
     /**
@@ -92,7 +113,17 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      * {@code IllegalArgumenException}.
      */
     @Override
-    public void union(T elem1, T elem2) {
+    public void union(T elem1, T elem2){
+        if(!(isElem(elem1) && isElem(elem2)))
+            throw new IllegalArgumentException();
+
+        T root1 = root(elem1);
+        T root2 = root(elem2);
+
+        if(root1.compareTo(root2) < 0)
+            dic.insert(root2, root1);
+        else if(root1.compareTo(root2) > 0)
+            dic.insert(root1, root2);
     }
 
     // ====================================================
@@ -105,7 +136,19 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      * directamente con su representante canonico.
      */
     @Override
-    public void flatten() {
+    public void flatten(){
+        List<T> keys = new LinkedList<>();
+
+        for(T elem : dic.keys())
+            keys.append(elem);
+
+        T rootElem;
+
+        for(T elem : keys){
+            rootElem = root(elem);
+            dic.delete(elem);
+            dic.insert(elem, rootElem);
+        }
     }
 
     /**
@@ -113,7 +156,22 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      * como listas.
      */
     @Override
-    public List<List<T>> kinds() {
+    public List<List<T>> kinds(){
+        List<List<T>> res = new LinkedList<>();
+        List<T> clase;
+        Set<T> keys = new HashSet<>();
+
+        for(T elem : dic.keys()){
+            if(!keys.isElem(elem)){
+                clase = kind(elem);
+                res.append(clase);
+
+                for(T x : clase)
+                    keys.insert(x);
+            }
+        }
+
+        return res;        
     }
 
     /**
