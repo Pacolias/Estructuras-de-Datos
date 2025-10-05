@@ -42,63 +42,99 @@ public class LinkedDoubleEndedQueue<T> implements DoubleEndedQueue<T> {
     /**
      * Complexity: O(1)
      */
-    public LinkedDoubleEndedQueue() {
+    public LinkedDoubleEndedQueue(){
+        first = null;
+        last = null;
     }
 
     /**
      * Complexity: O(1)
      */
     @Override
-    public boolean isEmpty() {
-
+    public boolean isEmpty(){
+        return first == null;
     }
 
     /**
      * Complexity: O(1)
      */
     @Override
-    public void addFirst(T x) {
+    public void addFirst(T x){
+        if(isEmpty()){
+            first = new Node<>(x, null, null);
+            last = first;
 
+        } else{
+            Node<T> node = new Node<>(x, first, null);
+            first.prev = node;
+            first = node;
+        }
     }
 
     /**
      * Complexity: O(1)
      */
     @Override
-    public void addLast(T x) {
+    public void addLast(T x){
+        if(isEmpty()){
+            first = new Node<>(x, null, null);
+            last = first;
 
+        } else{
+            Node<T> node = new Node<>(x, null, last);
+            last.next = node;
+            last = node;
+        }
     }
 
     /**
      * Complexity: o(1)
      */
     @Override
-    public T first() {
-
+    public T first(){
+        if(isEmpty())
+            throw new EmptyDoubleEndedQueueException("first on empty DEQ");
+        return first.elem;
     }
 
     /**
      * Complexity: O(1)
      */
     @Override
-    public T last() {
-
+    public T last(){
+        if(isEmpty())
+            throw new EmptyDoubleEndedQueueException("last on empty DEQ");
+        return last.elem;
     }
 
     /**
      * Complexity:
      */
     @Override
-    public void deleteFirst() {
-
+    public void deleteFirst(){
+        if(first == last){
+            first = null;
+            last = null;
+        
+        } else{
+            first.next.prev = null;
+            first = first.next;
+        }
     }
 
     /**
      * Complexity:
      */
     @Override
-    public void deleteLast() {
-
+    public void deleteLast(){
+        if(first == last){
+            first = null;
+            last = null;
+        
+        } else{
+            last.prev.next = null;
+            last = last.prev;
+        }
     }
 
     /**
