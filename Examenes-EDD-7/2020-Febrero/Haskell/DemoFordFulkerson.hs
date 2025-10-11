@@ -68,7 +68,7 @@ g2 = mkWeightedDiGraphSuc ["S","A","B","C","D","T"] sucs
         sucs "T" = []
         
 {- Some examples and expected results:
->   
+> let list2 = fordFulkerson g2 "S" "T"  
 > list2
 ["D"-10->"T","C"-9->"D","S"-9->"C","A"-6->"D","S"-10->"A",
 "B"-9->"T","A"-4->"B","D"-5->"B"]

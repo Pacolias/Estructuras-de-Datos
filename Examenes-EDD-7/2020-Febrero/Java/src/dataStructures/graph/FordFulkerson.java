@@ -7,7 +7,6 @@ package dataStructures.graph;
 
 import dataStructures.list.LinkedList;
 import dataStructures.list.List;
-import dataStructures.set.HashSet;
 import dataStructures.set.Set;
 import dataStructures.tuple.Tuple2;
 
@@ -22,35 +21,140 @@ public class FordFulkerson<V> {
      */
 
     public static <V> int maxFlowPath(List<WDiEdge<V,Integer>> path) {
+        int max = path.get(0).getWeight();
 
+        for(WDiEdge<V,Integer> edge : path){
+            if(edge.getWeight() < max) 
+                max = edge.getWeight();
+        }
+
+        return max;
     }
 
     public static <V> List<WDiEdge<V,Integer>> updateEdge(V x, V y, Integer p, List<WDiEdge<V,Integer>> edges) {
+        List<WDiEdge<V,Integer>> res = new LinkedList<>();
+        boolean existeArco = false;
 
+        for(WDiEdge<V,Integer> edge : edges){
+            if(x.equals(edge.getSrc()) && y.equals(edge.getDst())){
+                existeArco = true;
+
+                if(edge.getWeight() + p != 0)
+                    res.append(new WDiEdge<>(x, edge.getWeight() + p, y));
+
+            } else{
+                res.append(edge);
+            }
+        }
+
+        if(!existeArco)
+            res.append(new WDiEdge<>(x, p, y));
+
+        return res;
     }
 
     public static <V> List<WDiEdge<V,Integer>> updateEdges(List<WDiEdge<V,Integer>> path, Integer p, List<WDiEdge<V,Integer>> edges) {
+        for(WDiEdge<V,Integer> edge : path)
+            edges = updateEdge(edge.getSrc(), edge.getDst(), p, edges);
 
+        return edges;
     }
 
     public static <V> List<WDiEdge<V,Integer>> addFlow(V x, V y, Integer p, List<WDiEdge<V,Integer>> sol) {
-    
+        List<WDiEdge<V,Integer>> res = new LinkedList<>();
+        boolean existeArco = false;
+
+        for(WDiEdge<V,Integer> edge : sol){
+            if(x.equals(edge.getSrc()) && y.equals(edge.getDst())){
+                existeArco = true;
+                res.append(new WDiEdge<>(x, edge.getWeight() + p, y));
+
+            } else if(y.equals(edge.getSrc()) && x.equals(edge.getDst()) && edge.getWeight() == p){
+                existeArco = true;
+
+            } else if(y.equals(edge.getSrc()) && x.equals(edge.getDst()) && edge.getWeight() < p){
+                existeArco = true;
+                res.append(new WDiEdge<>(x, p - edge.getWeight(), y));
+
+            } else if(y.equals(edge.getSrc()) && x.equals(edge.getDst()) && edge.getWeight() > p){
+                existeArco = true;
+                res.append(new WDiEdge<>(y, edge.getWeight() - p, x));
+
+            }else{
+                res.append(edge);
+            }
+        }
+
+        if(!existeArco)
+            res.append(new WDiEdge<>(x, p, y));
+
+        return res;
     }
 
     public static <V> List<WDiEdge<V,Integer>> addFlows(List<WDiEdge<V,Integer>> path, Integer p, List<WDiEdge<V,Integer>> sol) {
+        for(WDiEdge<V,Integer> edge : path)
+            sol = addFlow(edge.getSrc(), edge.getDst(), p, sol);
 
+        return sol;
     }
 
     public FordFulkerson(WeightedDiGraph<V,Integer> g, V src, V dst) {
+        this.g = g;
+        this.src = src;
+        this.dst = dst;
+        sol = new LinkedList<>();
 
+        int mf;
+        List<WDiEdge<V,Integer>> edges;
+        WeightedDiGraph<V,Integer> wdg = g;
+        WeightedBreadthFirstTraversal<V,Integer> wbft = new WeightedBreadthFirstTraversal<>(g, src);
+        List<WDiEdge<V,Integer>> path = wbft.pathTo(dst);
+
+        while(path != null && !path.isEmpty()){
+            mf = maxFlowPath(path);
+            edges = wdg.wDiEdges();
+            edges = updateEdges(path, -mf, edges);
+            edges = updateEdges(reversePath(path), mf, edges);
+
+            sol = addFlows(path, mf, sol);
+
+            wdg = new WeightedDictionaryDiGraph<>(wdg.vertices(), edges);
+            wbft = new WeightedBreadthFirstTraversal<>(wdg, src);
+            path = wbft.pathTo(dst);
+        }
+    }
+
+    private List<WDiEdge<V,Integer>> reversePath(List<WDiEdge<V,Integer>> path){
+        List<WDiEdge<V,Integer>> res = new LinkedList<>();
+
+        for(WDiEdge<V,Integer> edge : path)
+            res.append(new WDiEdge<>(edge.getDst(), edge.getWeight(), edge.getSrc()));
+
+        return res;
     }
 
     public int maxFlow() {
+        int maxFlow = 0;
 
+        for(WDiEdge<V,Integer> edge : sol){
+            if(src.equals(edge.getSrc()))
+                maxFlow += edge.getWeight();
+        }
+
+        return maxFlow;
     }
 
     public int maxFlowMinCut(Set<V> set) {
+        int maxFlow = 0;
 
+        for(WDiEdge<V,Integer> edge : g.wDiEdges()){
+            if(set.isElem(edge.getSrc()) && !set.isElem(edge.getDst()))
+                maxFlow += edge.getWeight();
+            else if(!set.isElem(edge.getSrc()) && set.isElem(edge.getDst()))
+                maxFlow -= edge.getWeight();
+        }
+
+        return maxFlow;
     }
 
     /**
