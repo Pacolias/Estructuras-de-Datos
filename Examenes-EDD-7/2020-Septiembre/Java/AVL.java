@@ -236,6 +236,12 @@ class LinearBinPacking {
                 current.addObject(weight);
             }
         }
+
+        if(!added){
+            Bin bin = new Bin(initialCapacity);
+            bin.addObject(weight);
+            res.append(bin);
+        }
     }
 
 	public static Iterable<Integer> allWeights(Iterable<Bin> bins) {
