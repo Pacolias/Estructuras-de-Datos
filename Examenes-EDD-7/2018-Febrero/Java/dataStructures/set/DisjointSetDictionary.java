@@ -7,11 +7,11 @@
 
 package dataStructures.set;
 
-import dataStructures.dictionary.AVLDictionary;
 import dataStructures.dictionary.Dictionary;
-import dataStructures.list.ArrayList;
+import dataStructures.dictionary.HashDictionary;
 import dataStructures.list.LinkedList;
 import dataStructures.list.List;
+import dataStructures.tuple.Tuple2;
 
 public class DisjointSetDictionary<T extends Comparable<? super T>> implements DisjointSet<T> {
 
@@ -21,6 +21,7 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      * Inicializa las estructuras necesarias.
      */
     public DisjointSetDictionary() {
+        dic = new HashDictionary<>();
     }
 
     /**
@@ -28,6 +29,7 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      */
     @Override
     public boolean isEmpty() {
+        return dic.isEmpty();
     }
 
     /**
@@ -35,6 +37,7 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      */
     @Override
     public boolean isElem(T elem) {
+        return dic.isDefinedAt(elem);
     }
 
     /**
@@ -43,6 +46,7 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
 
     @Override
     public int numElements() {
+        return dic.size();
     }
 
     /**
@@ -52,6 +56,8 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      */
     @Override
     public void add(T elem) {
+        if(!dic.isDefinedAt(elem))
+            dic.insert(elem, elem);
     }
 
     /**
@@ -60,6 +66,10 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      * devuelve {@code null}.
      */
     private T root(T elem) {
+        if(!dic.isDefinedAt(elem))
+            return null;
+        else 
+            return elem.equals(dic.valueOf(elem)) ? elem : root(dic.valueOf(elem));
     }
 
     /**
@@ -67,6 +77,7 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      * de la clase de equivalencia a la que pertenece.
      */
     private boolean isRoot(T elem) {
+        return elem.equals(root(elem));
     }
 
     /**
@@ -75,6 +86,7 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      */
     @Override
     public boolean areConnected(T elem1, T elem2) {
+        return root(elem1).equals(root(elem2));
     }
 
     /**
@@ -84,6 +96,16 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      */
     @Override
     public List<T> kind(T elem) {
+        List<T> res = new LinkedList<>();
+
+        if(isElem(elem)){
+            for(T e : dic.keys()){
+                if(areConnected(e, elem))
+                    res.append(e);
+            }
+        }
+
+        return res;
     }
 
     /**
@@ -93,6 +115,16 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      */
     @Override
     public void union(T elem1, T elem2) {
+        if(!(isElem(elem1) && isElem(elem2)))
+            throw new IllegalArgumentException("union on at least one element which is not part of the DS");
+
+        T root1 = root(elem1);
+        T root2 = root(elem2);
+
+        if(root1.compareTo(root2) < 0)
+            dic.insert(root2, root1);
+        else if(root1.compareTo(root2) > 0)
+            dic.insert(root1, root2);
     }
 
     // ====================================================
@@ -106,6 +138,15 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      */
     @Override
     public void flatten() {
+        Set<Tuple2<T, T>> set = new HashSet<>();
+
+        for(T elem : dic.keys())
+            set.insert(new Tuple2<>(elem, root(elem)));
+
+        for(Tuple2<T,T> par : set){
+            dic.delete(par._1());
+            dic.insert(par._1(), par._2()); 
+        }
     }
 
     /**
@@ -114,6 +155,21 @@ public class DisjointSetDictionary<T extends Comparable<? super T>> implements D
      */
     @Override
     public List<List<T>> kinds() {
+        Set<T> set = new HashSet<>();
+        List<List<T>> res = new LinkedList<>();
+        List<T> clase;
+
+        for(T elem : dic.keys()){
+            if(!set.isElem(elem)){
+                clase = kind(elem);
+                res.append(clase);
+
+                for(T e : clase)
+                    set.insert(e);
+            }
+        }
+
+        return res;
     }
 
     /**
