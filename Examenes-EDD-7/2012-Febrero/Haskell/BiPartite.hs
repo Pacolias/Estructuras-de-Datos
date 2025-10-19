@@ -40,8 +40,13 @@ biColored g
 aux :: Ord v => Graph v -> D.Dictionary v Color -> S.Stack (v, Color) -> 
                 Maybe (D.Dictionary v Color)
 aux g dict stack
-   | S.isEmpty stack           = Just dict 
-   -- TODO
+  | S.isEmpty stack = Just dict 
+  | otherwise       =
+    case D.valueOf v dict of 
+      Nothing -> aux g (D.insert v c dict) (pushAll (S.pop stack) [(u, nextColor c) | u <- successors g v, not (D.isDefinedAt u dict)])
+      Just cd -> if cd /= c then Nothing else aux g dict (S.pop stack)
+    where 
+      (v, c) = S.top stack
  
 ---------------------
 --- EXAMPLES --------
